@@ -3,6 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const Peserta = require('../models/Peserta')
 const User = require('../models/User')
+const jwt = require("jsonwebtoken");
 
 const SettingController = {
 	getUserContent: async (req, res) => {
