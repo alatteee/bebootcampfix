@@ -2,15 +2,44 @@ const Setting = require('../models/Setting')
 const path = require('path')
 const fs = require('fs')
 const Peserta = require('../models/Peserta')
+const User = require('../models/User')
 
 const SettingController = {
 	getUserContent: async (req, res) => {
 		try {
-			const contents = await Setting.findAll({
-				attributes: ['id', 'text_home_user', 'image_home_user'],
+			const token = req.headers.authorization.split(' ')[1]
+			const decodedToken = jwt.verify(
+				token,
+				process.env.ACCESS_TOKEN_SECRET
+			)
+
+			const userId = decodedToken.userId
+
+			const user = await User.findOne({
+				attributes: ['role'],
+				where: { user_id: userId },
 			})
 
-			return res.status(200).json(contents)
+			if (user.role === 'user') {
+				const contents = await Setting.findAll({
+					attributes: ['text_home_user', 'image_home_user'],
+				})
+
+				return res.status(200).json(contents)
+			}
+
+			if (user.role === 'admin') {
+				const contents = await Setting.findAll({
+					attributes: [
+						'text_home_user',
+						'image_home_user',
+						'default_profile_image',
+						'link_gdrive',
+					],
+				})
+
+				return res.status(200).json(contents)
+			}
 		} catch (error) {
 			console.error('Error fetching batches:', error)
 			return res.status(500).json({ error: 'Internal Server Error' })
