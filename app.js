@@ -19,6 +19,7 @@ app.use(
 				`http://10.10.102.111:${port}`,
 				`http://10.10.102.113:${port}`,
 				`http://10.10.102.209:${port}`,
+				`http://10.10.101.128:${port}`,
 				`http://localhost:${port}`,
 				'http://10.10.102.209:8000',
 				'http://10.10.102.111:8000',
@@ -54,7 +55,7 @@ const options = {
 		},
 		servers: [
 			{
-				url: 'http://10.10.102.111:3001/api',
+				url: 'http://10.10.101.128:3001/api',
 			},
 		],
 		components: {
