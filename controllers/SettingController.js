@@ -4,6 +4,19 @@ const fs = require('fs')
 const Peserta = require('../models/Peserta')
 
 const SettingController = {
+	getUserContent: async (req, res) => {
+		try {
+			const contents = await Setting.findAll({
+				attributes: ['id', 'text_home_user', 'image_home_user'],
+			})
+
+			return res.status(200).json(contents)
+		} catch (error) {
+			console.error('Error fetching batches:', error)
+			return res.status(500).json({ error: 'Internal Server Error' })
+		}
+	},
+
 	insertDefaultProfileImage: async (req, res) => {
 		try {
 			if (req.files && Object.keys(req.files).length > 0) {
@@ -83,11 +96,9 @@ const SettingController = {
 					{ where: { id: currentDefaultImageSettings.id } }
 				)
 
-				return res
-					.status(201)
-					.json({
-						msg: 'Successfully Updated Default Profile Image!',
-					})
+				return res.status(201).json({
+					msg: 'Successfully Updated Default Profile Image!',
+				})
 			} else {
 				return res
 					.status(500)

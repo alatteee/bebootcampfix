@@ -1,7 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const SettingController = require("../controllers/SettingController");
-const { verifyToken, adminOnly } = require("../middleware/AuthUser");
+const express = require('express')
+const router = express.Router()
+const SettingController = require('../controllers/SettingController')
+const { verifyToken, adminOnly } = require('../middleware/AuthUser')
 
 /**
  * @swagger
@@ -14,6 +14,23 @@ const { verifyToken, adminOnly } = require("../middleware/AuthUser");
  *     in: header
  *     name: Authorization
  */
+
+/**
+ * @swagger
+ * /userContent:
+ *   get:
+ *     summary: Get all user dashboard content
+ *     description: Retrieve a list of user dashboard content
+ *     tags: [settings]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/userContent', verifyToken, SettingController.getUserContent)
 
 /**
  * @swagger
@@ -40,7 +57,12 @@ const { verifyToken, adminOnly } = require("../middleware/AuthUser");
  *       500:
  *         description: Internal server error
  */
-router.post("/settings/defaultProfileImage", verifyToken, adminOnly, SettingController.insertDefaultProfileImage);
+router.post(
+	'/settings/defaultProfileImage',
+	verifyToken,
+	adminOnly,
+	SettingController.insertDefaultProfileImage
+)
 
 /**
  * @swagger
@@ -66,7 +88,12 @@ router.post("/settings/defaultProfileImage", verifyToken, adminOnly, SettingCont
  *       500:
  *         description: Internal server error
  */
-router.post("/settings/textHomeUser", verifyToken, adminOnly, SettingController.insertTextHomeUser);
+router.post(
+	'/settings/textHomeUser',
+	verifyToken,
+	adminOnly,
+	SettingController.insertTextHomeUser
+)
 
 /**
  * @swagger
@@ -93,7 +120,12 @@ router.post("/settings/textHomeUser", verifyToken, adminOnly, SettingController.
  *       500:
  *         description: Internal server error
  */
-router.post("/settings/imageHomeUser", verifyToken, adminOnly, SettingController.insertImageHomeUser);
+router.post(
+	'/settings/imageHomeUser',
+	verifyToken,
+	adminOnly,
+	SettingController.insertImageHomeUser
+)
 
 /**
  * @swagger
@@ -119,6 +151,11 @@ router.post("/settings/imageHomeUser", verifyToken, adminOnly, SettingController
  *       500:
  *         description: Internal server error
  */
-router.post("/settings/linkGDrive", verifyToken, adminOnly, SettingController.insertLinkGDrive);
+router.post(
+	'/settings/linkGDrive',
+	verifyToken,
+	adminOnly,
+	SettingController.insertLinkGDrive
+)
 
-module.exports = router;
+module.exports = router
