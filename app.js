@@ -26,6 +26,8 @@ app.use(
 				'http://10.10.102.113:8000',
 				'http://10.10.101.98:8000',
 				'http://localhost:8000',
+        // data internet
+        'http://192.168.37.91:8000',
 			]
 
 			if (!origin || allowedOrigins.includes(origin)) {
@@ -55,7 +57,10 @@ const options = {
 		},
 		servers: [
 			{
-				url: 'http://10.10.101.128:3001/api',
+				// url: 'http://10.10.101.128:3001/api',
+
+        // data internet
+				url: 'http://192.168.37.5:3001/api',
 			},
 		],
 		components: {

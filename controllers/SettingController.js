@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const Peserta = require('../models/Peserta')
 const User = require('../models/User')
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken')
 
 const SettingController = {
 	getUserContent: async (req, res) => {
@@ -22,15 +22,15 @@ const SettingController = {
 			})
 
 			if (user.role === 'user') {
-				const contents = await Setting.findAll({
+				const contents = await Setting.findOne({
 					attributes: ['text_home_user', 'image_home_user'],
 				})
 
-				return res.status(200).json(contents)
+				return res.status(200).json({ contents })
 			}
 
 			if (user.role === 'admin') {
-				const contents = await Setting.findAll({
+				const contents = await Setting.findOne({
 					attributes: [
 						'text_home_user',
 						'image_home_user',
@@ -39,7 +39,7 @@ const SettingController = {
 					],
 				})
 
-				return res.status(200).json(contents)
+				return res.status(200).json({ contents })
 			}
 		} catch (error) {
 			console.error('Error fetching batches:', error)
@@ -54,7 +54,7 @@ const SettingController = {
 
 				const fileSize = profileImage.data.length || profileImage.size
 				const ext = path.extname(profileImage.name)
-				const fileName = 'undefined' + ext
+				const fileName = profileImage.md5 + ext
 				const url = `/settings/default-profile-image/${fileName}` // URL file gambar profil
 				const allowedTypes = ['.png', '.jpg', '.jpeg']
 
@@ -128,6 +128,9 @@ const SettingController = {
 
 				return res.status(201).json({
 					msg: 'Successfully Updated Default Profile Image!',
+					data: {
+						url: url,
+					},
 				})
 			} else {
 				return res
