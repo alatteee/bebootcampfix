@@ -155,6 +155,9 @@ router.delete("/pengajars/:id", verifyToken, adminOnly, PengajarController.delet
  *           schema:
  *             type: object
  *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The current password of the pengajar
  *               newPassword:
  *                 type: string
  *                 description: The new password for the pengajar

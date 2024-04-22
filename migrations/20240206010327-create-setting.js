@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: true,
       },
-      text_home_user: {
+      default_image_batch: {
         type: Sequelize.STRING(255),
         allowNull: true,
       },
@@ -21,7 +21,23 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: true,
       },
-      link_gdrive: {
+      link_drive_cv: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+      link_drive_certi: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+      image_logo_admin: { // Tambah kolom image_logo_admin
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+      image_logo_user: { // Tambah kolom image_logo_user
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+      default_password: { // Tambah kolom default_password
         type: Sequelize.STRING(255),
         allowNull: true,
       },

@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const sequelize = require("../config/connection.js");
 const Batch = require("../models/Batch.js");
 const User = require("../models/User.js");
+const Certificate = require("./Certificate.js");
 
 const Peserta = sequelize.define(
   "Peserta",
@@ -92,6 +93,11 @@ const Peserta = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    id_certificate: {
+      type: DataTypes.UUID,
+      defaultValue: () => uuidv4(),
+      allowNull: true,
+    }
   },
   {
     timestamps: true,
@@ -102,5 +108,6 @@ const Peserta = sequelize.define(
 
 Peserta.belongsTo(Batch, { foreignKey: "batch_id" });
 Peserta.belongsTo(User, { foreignKey: "peserta_id" });
+Peserta.belongsTo(Certificate, { foreignKey: 'id_certificate' });
 
 module.exports = Peserta;

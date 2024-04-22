@@ -22,6 +22,10 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      deskripsi_batch_user: { // Tambah kolom deskripsi_batch_user di bawah deskripsi_batch
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
       status_batch: {
         type: Sequelize.BOOLEAN,
         allowNull: false,

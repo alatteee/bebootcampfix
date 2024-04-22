@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const { DataTypes } = require('sequelize');
-const { v4: uuidv4 } = require('uuid');
-const sequelize = require('../config/connection.js');
+const { DataTypes } = require("sequelize");
+const { v4: uuidv4 } = require("uuid");
+const sequelize = require("../config/connection.js");
 
 const Batch = sequelize.define(
-  'Batch',
+  "Batch",
   {
     batch_id: {
       type: DataTypes.UUID,
@@ -25,6 +25,11 @@ const Batch = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    deskripsi_batch_user: {
+      // Add deskripsi_batch_user column
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     status_batch: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -32,7 +37,7 @@ const Batch = sequelize.define(
     image_batch: {
       type: DataTypes.STRING(255),
       allowNull: true, // Allow NULL for image_batch
-      defaultValue: 'defaultProfile.jpg', // Default image file name
+      defaultValue: "defaultProfile.jpg", // Default image file name
     },
     url: {
       type: DataTypes.STRING(255),
@@ -41,8 +46,8 @@ const Batch = sequelize.define(
   },
   {
     timestamps: true,
-    tableName: 'batch',
-    paranoid: true
+    tableName: "batch",
+    paranoid: true,
   }
 );
 

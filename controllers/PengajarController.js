@@ -120,14 +120,23 @@ const PengajarController = {
           return res.status(422).json({ msg: "Image must be less than 5MB" });
         }
 
-        if (existingPengajar.image !== "undefined.jpg") {
-          // Hapus file lama sebelum menggantinya
-          const filePath = `./public/images/${existingPengajar.profile_image}`;
-          fs.unlinkSync(filePath);
+        // Check if the participant is using the default profile image
+        const isUsingDefaultImage = existingPengajar.url.includes(
+          "settings/default-profile-image/"
+        );
+
+        if (!isUsingDefaultImage) {
+          // Delete the previous image if it's not the default profile image
+          const imagePath = `./public/mentor/${existingPengajar.profile_image}`;
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          } else {
+            console.log("Previous image not found:", imagePath);
+          }
         }
 
         // Pindahkan file baru ke direktori yang ditentukan
-        file.mv(`./public/images/${fileName}`, (err) => {
+        file.mv(`./public/mentor/${fileName}`, (err) => {
           if (err) {
             return res.status(500).json({ msg: err.message });
           }
@@ -140,8 +149,8 @@ const PengajarController = {
           req.body.email_pengajar || existingPengajar.email_pengajar,
         nama_pengajar: req.body.nama_pengajar || existingPengajar.nama_pengajar,
         jenis_kelamin: req.body.jenis_kelamin || existingPengajar.jenis_kelamin,
-        profile_image: fileName,
-        url: `/images/${fileName}`,
+        profile_image: fileName || existingPengajar.profile_image,
+        url: `/mentor/${fileName}` || existingPengajar.url,
       });
 
       // Update data pengguna jika ada pembaruan email_pengajar
@@ -229,6 +238,7 @@ const PengajarController = {
 
   changePassword: async (req, res) => {
     const id = req.params.id;
+    const currentPassword = req.body.currentPassword;
     const newPassword = req.body.newPassword;
     const confPassword = req.body.confPassword;
 
@@ -247,10 +257,25 @@ const PengajarController = {
           .json({ msg: "New password and confirmation password do not match" });
       }
 
+      // Periksa panjang newPassword
+      if (newPassword.length < 8 || newPassword.length > 16) {
+        return res.status(400).json({
+          msg: "Password length must be between 8 and 16 characters",
+        });
+      }
+
+      // Verifikasi currentPassword
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        existingPengajar.password_pengajar
+      );
+
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ msg: "Current password is incorrect" });
+      }
+
       // Hash newPassword
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
-      console.log("New Hash:", hashedNewPassword);
 
       // Perbarui password pengajar di database
       await existingPengajar.update({ password_pengajar: hashedNewPassword });

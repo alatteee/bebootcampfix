@@ -16,7 +16,7 @@ const Setting = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    text_home_user: {
+    default_image_batch: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
@@ -24,7 +24,23 @@ const Setting = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    link_gdrive: {
+    link_drive_cv: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    link_drive_certi: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    image_logo_admin: { // Tambah kolom image_logo_admin
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    image_logo_user: { // Tambah kolom image_logo_user
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    default_password: { // Tambah kolom default_password
       type: DataTypes.STRING(255),
       allowNull: true,
     },

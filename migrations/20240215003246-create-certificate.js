@@ -1,33 +1,26 @@
 "use strict";
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("certificate", {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: uuidv4(),
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false,
       },
       peserta_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: "user", // Gantilah "user" dengan nama tabel yang benar
           key: "user_id",
         },
       },
-      nama: {
+      url: {
         type: Sequelize.STRING(255),
-        allowNull: false,
-      },
-      code: {
-        type: Sequelize.STRING(255),
-        allowNull: false,
-      },
-      tanggal: {
-        type: Sequelize.DATE,
-        allowNull: false,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
@@ -35,6 +28,10 @@ module.exports = {
       },
       updatedAt: {
         allowNull: false,
+        type: Sequelize.DATE,
+      },
+      deletedAt: {
+        allowNull: true,
         type: Sequelize.DATE,
       },
     });

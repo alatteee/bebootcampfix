@@ -1,7 +1,9 @@
 const Batch = require("../models/Batch.js"); // Sesuaikan dengan path model Batch
 const path = require("path");
 const fs = require("fs");
+const ExcelJS = require("exceljs");
 const Peserta = require("../models/Peserta.js");
+const Setting = require("../models/Setting.js");
 
 // Fungsi capitalize untuk mengubah hanya huruf pertama dari setiap kata menjadi besar
 const capitalize = (str) => {
@@ -18,6 +20,7 @@ const BatchController = {
           "kategori_batch",
           "materi_batch",
           "deskripsi_batch",
+          "deskripsi_batch_user",
           "status_batch",
           "image_batch",
           "url",
@@ -43,8 +46,10 @@ const BatchController = {
           "kategori_batch",
           "materi_batch",
           "deskripsi_batch",
+          "deskripsi_batch_user",
           "status_batch",
           "image_batch",
+          "url",
           "createdAt",
         ],
       });
@@ -85,6 +90,12 @@ const BatchController = {
           "hireBy",
           "image",
           "url",
+        ],
+        include: [
+          {
+            model: Batch, // Ganti Batch dengan nama model atau tabel yang berisi informasi batch
+            attributes: ["kategori_batch"],
+          },
         ],
         order: [["createdAt", "DESC"]], // Menambahkan urutan berdasarkan createdAt
       });
@@ -169,10 +180,12 @@ const BatchController = {
     }
   },
 
-  // Mengupload batch
+  // Mengunggah batch
   createBatch: async (req, res) => {
     try {
-      const { kategori_batch } = req.body;
+      const { kategori_batch, deskripsi_batch_user } = req.body;
+
+      const dataSettings = await Setting.count({ paranoid: false });
 
       // Mengonversi kategori_batch menjadi capitalize
       const capitalizedKategori = kategori_batch
@@ -191,57 +204,76 @@ const BatchController = {
 
       // Data batch yang akan disimpan
       const batchData = {
-        kategori_batch: capitalize(req.body.kategori_batch),
+        kategori_batch: capitalizedKategori,
         materi_batch: req.body.materi_batch,
         deskripsi_batch: req.body.deskripsi_batch,
+        deskripsi_batch_user: deskripsi_batch_user, // Assign deskripsi_batch_user
         status_batch: req.body.status_batch || true,
       };
 
-      // Jika ada file yang diunggah, proses file
-      if (req.files && Object.keys(req.files).length > 0) {
-        const imageFile = req.files.image_batch;
+      let imageFile = req.files ? req.files.image_batch : null;
+      let imageFileName;
+      let imageUrl;
+      let imageExt; // Definisikan variabel imageExt di sini
 
-        const fileSize = imageFile.data.length || imageFile.size;
-        const ext = path.extname(imageFile.name);
-        const fileName = imageFile.md5 + ext;
-        const url = `/images/${fileName}`;
-        const allowedType = [".png", ".jpg", ".jpeg"];
+      if (!imageFile) {
+        const dirPath = "./public/settings/default-image-batch/";
+        const files = fs.readdirSync(dirPath);
 
-        if (!allowedType.includes(ext.toLowerCase())) {
+        // Jika tidak ada file yang diunggah, gunakan default
+        let defaultImageFileName = files[0];
+
+        imageFile = {
+          data: fs.readFileSync(
+            `./public/settings/default-image-batch/${defaultImageFileName}`
+          ),
+          name: defaultImageFileName,
+          size: fs.statSync(
+            `./public/settings/default-image-batch/${defaultImageFileName}`
+          ).size,
+        };
+
+        console.log("Using default image:", imageFile.name);
+
+        imageExt = path.extname(imageFile.name); // Inisialisasi imageExt di sini
+        imageFileName = imageFile.name;
+        imageUrl = `settings/default-image-batch/${imageFileName}`;
+      } else {
+        imageExt = path.extname(imageFile.name); // Inisialisasi imageExt di sini
+
+        if (![".png", ".jpg", ".jpeg"].includes(imageExt.toLowerCase())) {
           return res.status(422).json({ msg: "Invalid Image Type" });
         }
 
-        if (fileSize > 5000000) {
-          return res.status(422).json({ msg: "Image must be less than 5MB" });
+        console.log("image", imageFile);
+
+        if (req.files && imageFile.data) {
+          // Pindahkan file ke direktori public/batch
+          fs.writeFileSync(`./public/batch/${imageFileName}`, imageFile.data);
         }
 
-        imageFile.mv(`./public/images/${fileName}`, async (err) => {
-          if (err) {
-            return res.status(500).json({ msg: err.message });
-          }
-
-          // Setelah file terunggah, tambahkan informasi file ke data batch
-          batchData.image_batch = fileName;
-          batchData.url = url;
-
-          // Simpan data ke database
-          const newBatch = await Batch.create(batchData);
-
-          return res.status(201).json(newBatch);
-        });
-      } else {
-        // Jika tidak ada file diunggah, gunakan default image_batch
-        const defaultImageFileName = "undefined.jpg";
-        const defaultImageUrl = `/images/${defaultImageFileName}`;
-
-        batchData.image_batch = defaultImageFileName;
-        batchData.url = defaultImageUrl;
-
-        // Simpan data ke database
-        const newBatch = await Batch.create(batchData);
-
-        return res.status(201).json(newBatch);
+        imageFileName = imageFile.md5 + imageExt;
+        imageUrl = `batch/${imageFileName}`;
       }
+
+      console.log("image ext", imageExt);
+      console.log("image file name", imageFileName);
+      console.log("image url", imageUrl);
+
+      if (dataSettings < 1) {
+        await Setting.create({
+          default_image_batch: imageUrl,
+        });
+      }
+
+      // Simpan data ke database
+      const newBatch = await Batch.create({
+        ...batchData,
+        image_batch: imageFileName,
+        url: imageUrl,
+      });
+
+      return res.status(201).json(newBatch);
     } catch (error) {
       console.error("Error creating batch:", error);
       return res.status(500).json({ error: "Internal Server Error" });
@@ -282,14 +314,23 @@ const BatchController = {
           return res.status(422).json({ msg: "Image must be less than 5MB" });
         }
 
-        if (existImageFileName !== "undefined.jpg") {
-          // Hapus file lama sebelum menggantinya
-          const filePath = `./public/images/${existImageFileName}`;
-          fs.unlinkSync(filePath);
+        // Check if the participant is using the default profile image
+        const isUsingDefaultImage = existingBatch.url.includes(
+          "settings/default-profile-image/"
+        );
+
+        if (!isUsingDefaultImage) {
+          // Delete the previous image if it's not the default profile image
+          const imagePath = `./public/batch/${existingBatch.image_batch}`;
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          } else {
+            console.log("Previous image not found:", imagePath);
+          }
         }
 
         // Pindahkan file baru ke direktori yang ditentukan
-        file.mv(`./public/images/${fileName}`, (err) => {
+        file.mv(`./public/batch/${fileName}`, (err) => {
           if (err) {
             return res.status(500).json({ msg: err.message });
           }
@@ -310,15 +351,20 @@ const BatchController = {
         return res.status(422).json({ msg: "Duplicate category found" });
       }
 
+      // Baca nilai deskripsi_batch_user dari permintaan
+      const deskripsiBatchUser =
+        req.body.deskripsi_batch_user || existingBatch.deskripsi_batch_user;
+
       // Update data batch di database
       const updatedBatch = await existingBatch.update({
         kategori_batch: newCategory,
         materi_batch: req.body.materi_batch || existingBatch.materi_batch,
         deskripsi_batch:
           req.body.deskripsi_batch || existingBatch.deskripsi_batch,
+        deskripsi_batch_user: deskripsiBatchUser, // Tambahkan deskripsi_batch_user ke data yang diperbarui
         status_batch: req.body.status_batch || existingBatch.status_batch,
         image_batch: fileName || existingBatch.image_batch,
-        url: fileName ? `/images/${fileName}` : existingBatch.url,
+        url: fileName ? `batch/${fileName}` : existingBatch.url,
       });
 
       return res
@@ -347,6 +393,14 @@ const BatchController = {
         status_batch: false,
         deletedAt: new Date(),
       });
+
+      // Hapus file terkait jika tidak menggunakan default image
+      const imagePath = `./public/batch/${existingBatch.image_batch}`;
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      } else {
+        console.log("Batch image not found:", imagePath);
+      }
 
       const softDeleteBatch = await updatedBatch.destroy();
 
@@ -425,6 +479,77 @@ const BatchController = {
       return res
         .status(500)
         .json({ success: false, message: "Internal Server Error" });
+    }
+  },
+
+  exportParticipantsByBatch: async (req, res) => {
+    try {
+      const { batchId } = req.params;
+
+      // Temukan batch berdasarkan ID
+      const batch = await Batch.findByPk(batchId);
+
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      // Dapatkan semua peserta untuk batch tertentu
+      const participants = await Peserta.findAll({
+        where: { batch_id: batchId },
+      });
+
+      // Membuat workbook baru
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Participants");
+
+      // Menambahkan header ke worksheet
+      worksheet.addRow([
+        "ID",
+        "Nama Peserta",
+        "Jenis Kelamin",
+        "Nomor Handphone",
+        "Alamat Rumah",
+        "Email",
+        "Tanggal Lahir",
+        "Link Github",
+        "CV",
+        "Penilaian",
+        "Status",
+        "Hire By",
+      ]);
+
+      // Menambahkan data peserta ke worksheet
+      participants.forEach((participant) => {
+        worksheet.addRow([
+          participant.id,
+          participant.nama_peserta,
+          participant.jenis_kelamin,
+          participant.nomor_handphone,
+          participant.alamat_rumah,
+          participant.email,
+          participant.tanggal_lahir,
+          participant.link_github,
+          participant.cv,
+          participant.penilaian,
+          participant.status,
+          participant.hireBy,
+        ]);
+      });
+
+      // Membuat nama file Excel
+      const fileName = `participants_batch_${batchId}.xlsx`;
+
+      // Menulis workbook ke file Excel
+      await workbook.xlsx.writeFile(fileName);
+
+      // Mengirim file Excel sebagai respon
+      res.status(200).download(fileName, () => {
+        // Hapus file setelah di-download
+        fs.unlinkSync(fileName);
+      });
+    } catch (error) {
+      console.error("Error exporting participants by batch:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
   },
 };

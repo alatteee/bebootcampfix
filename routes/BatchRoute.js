@@ -149,6 +149,9 @@ router.post("/batches/addParticipantsOnBatch/:batchId", verifyToken, adminOnly, 
  *               deskripsi_batch:
  *                 type: string
  *                 description: The description of the batch
+ *               deskripsi_batch_user:
+ *                 type: string
+ *                 description: The user description of the batch
  *               status_batch:
  *                 type: string
  *                 description: The status of the batch
@@ -200,6 +203,9 @@ router.post("/batches", verifyToken, adminOnly, BatchController.createBatch);
  *               deskripsi_batch:
  *                 type: string
  *                 description: The updated description of the batch
+ *               deskripsi_batch_user:
+ *                 type: string
+ *                 description: The updated user description of the batch
  *               status_batch:
  *                 type: string
  *                 description: The updated status of the batch
@@ -271,5 +277,44 @@ router.delete("/batches/:batchId", verifyToken, adminOnly, BatchController.delet
  *         description: Internal server error
  */
 router.patch("/batches/:batchId", verifyToken, adminOnly, BatchController.changeStatus);
+
+/**
+ * @swagger
+ * /batches/exportParticipantsByBatch/{batchId}:
+ *   get:
+ *     summary: Export participants of a batch to Excel
+ *     description: Retrieve and export participants of a specific batch to an Excel file
+ *     tags: [batches]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: batchId
+ *         required: true
+ *         description: ID of the batch to export participants
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Successfully exported participants to Excel
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       '404':
+ *         description: Batch not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Batch not found
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error
+ */
+router.get("/batches/exportParticipantsByBatch/:batchId", verifyToken, adminOnly, BatchController.exportParticipantsByBatch);
 
 module.exports = router;

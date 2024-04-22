@@ -82,6 +82,14 @@ module.exports = {
       url: {
         type: Sequelize.STRING(255),
       },
+      id_certificate: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: 'certificate', // Gantilah "certificate" dengan nama tabel yang benar
+          key: 'id',
+        },
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

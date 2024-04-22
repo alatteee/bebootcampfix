@@ -244,6 +244,9 @@ router.put("/pesertas/:id/grading", verifyToken, adminOnly, PesertaController.gr
  *               hireBy:
  *                 type: string
  *                 description: The updated hireBy information for the peserta
+ *               linkCertificate:
+ *                 type: string
+ *                 description: The link of the certificate image file to be uploaded for the peserta
  *     responses:
  *       200:
  *         description: Peserta updated successfully
@@ -334,6 +337,9 @@ router.patch("/pesertas/:id", verifyToken, adminOnly, PesertaController.changeSt
  *           schema:
  *             type: object
  *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The current password of the participant
  *               newPassword:
  *                 type: string
  *                 description: The new password for the participant
@@ -380,5 +386,32 @@ router.put("/pesertas/:id/changePassword", verifyToken, PesertaController.change
  *         description: Internal server error
  */
 router.patch("/pesertas/:id/setImageDefault", verifyToken, adminOnly, PesertaController.setImageDefault);
+
+/**
+ * @swagger
+ * /pesertas/{id}/resetPassword:
+ *   put:
+ *     summary: Reset password for a participant by ID
+ *     description: Reset the password of an existing participant based on its ID
+ *     tags: 
+ *       - pesertas
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the participant to reset password
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Password reset successfully
+ *       '404':
+ *         description: Participant not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.put("/pesertas/:id/resetPassword", verifyToken, adminOnly, PesertaController.resetPassword);
 
 module.exports = router;
